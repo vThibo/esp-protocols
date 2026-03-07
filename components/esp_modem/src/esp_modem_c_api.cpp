@@ -389,6 +389,14 @@ extern "C" esp_err_t esp_modem_get_radio_state(esp_modem_dce_t *dce_wrap, int *p
     return ret;
 }
 
+extern "C" esp_err_t esp_modem_setup_data_mode(esp_modem_dce_t *dce_wrap)
+{
+    if (dce_wrap == nullptr || dce_wrap->dce == nullptr) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    return dce_wrap->dce->get_module()->setup_data_mode() ? ESP_OK : ESP_FAIL;
+}
+
 extern "C" esp_err_t esp_modem_set_network_mode(esp_modem_dce_t *dce_wrap, int mode)
 {
     if (dce_wrap == nullptr || dce_wrap->dce == nullptr) {
@@ -505,18 +513,6 @@ extern "C" esp_err_t esp_modem_config_edrx(esp_modem_dce_t *dce_wrap, int mode, 
     }
 
     return command_response_to_esp_err(dce_wrap->dce->config_edrx(mode, access_technology, std::string(edrx_value)));
-}
-
-extern "C" esp_err_t esp_modem_sqn_gm02s_connect(esp_modem_dce_t *dce_wrap, const esp_modem_PdpContext_t *pdp_context)
-{
-    if (dce_wrap == nullptr || dce_wrap->dce == nullptr) {
-        return ESP_ERR_INVALID_ARG;
-    }
-
-    esp_modem::PdpContext pdp{pdp_context->apn};
-    pdp.context_id = pdp_context->context_id;
-    pdp.protocol_type = pdp_context->protocol_type;
-    return command_response_to_esp_err(static_cast<SQNGM02S *>(dce_wrap->dce->get_module())->connect(pdp));
 }
 
 extern "C" esp_err_t esp_modem_reset(esp_modem_dce_t *dce_wrap)

@@ -6,12 +6,13 @@
 
 #include "cxx_include/esp_modem_api.hpp"
 #include "cxx_include/esp_modem_dce_module.hpp"
-#include "cxx17_include/esp_modem_command_library_17.hpp"
 #include "cxx_include/esp_modem_dte.hpp"
 
 namespace esp_modem {
 GenericModule::GenericModule(std::shared_ptr<DTE> dte, const dce_config *config) :
-    dte(std::move(dte)), pdp(std::make_unique<PdpContext>(config->apn)) {}
+    dte(std::move(dte)),
+    pdp(std::make_unique<PdpContext>(config->apn)),
+    registration_timeout_ms(config->registration_timeout_ms) {}
 /**
  * @brief Sends the initial AT sequence to sync up with the device
  * @return OK, FAIL or TIMEOUT
@@ -478,35 +479,61 @@ command_result BG96::set_pdp_context(esp_modem::PdpContext &pdp)
 {
     return dce_commands::set_pdp_context(dte.get(), pdp, 300);
 }
-bool SQNGM02S::setup_data_mode()
+// The GM02S(P) boots into CFUN=0 (minimum functionality), unlike most modems which default to
+// CFUN=1, leaving the SIM interface disabled. CFUN=4 (airplane mode) is the minimum required
+// state for SIM commands such as AT+CPIN to be available. For this reason, all SIM-related
+// command overrides must call sqngm02s_prepare_sim() first.
+static command_result sqngm02s_prepare_sim(SQNGM02S *m)
 {
-    return true;
-}
-command_result SQNGM02S::connect(PdpContext &pdp)
-{
-    command_result res;
-    configure_pdp_context(std::make_unique<PdpContext>(pdp));
-    set_pdp_context(*this->pdp);
-    res = config_network_registration_urc(1);
-    if (res != command_result::OK) {
-        return res;
+    int state;
+    if (m->get_radio_state(state) != command_result::OK) {
+        return command_result::FAIL;
     }
-    res = set_radio_state(1);
-    if (res != command_result::OK) {
-        return res;
-    }
-    //wait for +CEREG: 5 or +CEREG: 1.
-    const auto pass = std::list<std::string_view>({"+CEREG: 1", "+CEREG: 5"});
-    const auto fail = std::list<std::string_view>({"ERROR"});
-    res = esp_modem::dce_commands::generic_command(dte.get(), "", pass, fail, 1200000);
-    if (res != command_result::OK) {
-        config_network_registration_urc(0);
-        return res;
-    }
-    res = config_network_registration_urc(0);
-    if (res != command_result::OK) {
-        return res;
+    if (state == 0) {
+        return m->set_radio_state(4);
     }
     return command_result::OK;
+}
+command_result SQNGM02S::read_pin(bool &pin_ok)
+{
+    if (sqngm02s_prepare_sim(this) != command_result::OK) {
+        return command_result::FAIL;
+    }
+    return GenericModule::read_pin(pin_ok);
+}
+command_result SQNGM02S::set_pin(const std::string &pin)
+{
+    if (sqngm02s_prepare_sim(this) != command_result::OK) {
+        return command_result::FAIL;
+    }
+    return GenericModule::set_pin(pin);
+}
+bool SQNGM02S::setup_data_mode()
+{
+    if (set_echo(false) != command_result::OK) {
+        return false;
+    }
+    int radio_state;
+    if (get_radio_state(radio_state) == command_result::OK &&
+            (radio_state == 1)) {
+        return true;
+    }
+    if (set_pdp_context(*pdp) != command_result::OK) {
+        return false;
+    }
+    if (set_radio_state(1) != command_result::OK) {
+        return false;
+    }
+    constexpr int retry_delay_ms = 2000;
+    const int max_retries = registration_timeout_ms / retry_delay_ms;
+    int reg_state;
+    for (int retry = 0; retry < max_retries; retry++) {
+        if (get_network_registration_state(reg_state) == command_result::OK &&
+                (reg_state == 1 || reg_state == 5)) {
+            return true;
+        }
+        Task::Delay(retry_delay_ms);
+    }
+    return false;
 }
 }

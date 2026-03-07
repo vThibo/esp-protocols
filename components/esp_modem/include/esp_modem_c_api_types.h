@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "esp_err.h"
 #include "esp_modem_config.h"
 #include "esp_netif.h"
 
@@ -120,6 +121,13 @@ void esp_modem_destroy(esp_modem_dce_t *dce);
 esp_err_t esp_modem_set_error_cb(esp_modem_dce_t *dce, esp_modem_terminal_error_cbt err_cb);
 
 /**
+ * @brief Prepares the modem for data mode without entering it (network setup without PPP dial)
+ * @param dce Modem DCE handle
+ * @return ESP_OK on success, ESP_FAIL on failure
+ */
+esp_err_t esp_modem_setup_data_mode(esp_modem_dce_t *dce);
+
+/**
  * @brief Set operation mode for this DCE
  * @param dce Modem DCE handle
  * @param mode Desired MODE
@@ -162,8 +170,6 @@ esp_err_t esp_modem_set_apn(esp_modem_dce_t *dce, const char *apn);
  */
 esp_err_t esp_modem_set_urc(esp_modem_dce_t *dce, esp_err_t(*got_line_cb)(uint8_t *data, size_t len));
 #endif
-
-esp_err_t esp_modem_sqn_gm02s_connect(esp_modem_dce_t *dce, const esp_modem_PdpContext_t *pdp_context);
 
 /**
  * @brief This API provides support for temporarily pausing networking in order

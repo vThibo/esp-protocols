@@ -18,9 +18,10 @@ extern "C" {
  * @brief ESP Modem DCE Default Configuration
  *
  */
-#define ESP_MODEM_DCE_DEFAULT_CONFIG(APN)       \
-    {                                           \
-        .apn = APN                              \
+#define ESP_MODEM_DCE_DEFAULT_CONFIG(APN)               \
+    {                                                   \
+        .apn = APN,                                     \
+        .registration_timeout_ms = 300000               \
     }
 
 typedef struct esp_modem_dce_config esp_modem_dce_config_t;
@@ -30,6 +31,7 @@ typedef struct esp_modem_dce_config esp_modem_dce_config_t;
  */
 struct esp_modem_dce_config {
     const char *apn;  /*!< APN: Logical name of the Access point */
+    uint32_t registration_timeout_ms; /*!< Max wait for network registration. */
 };
 
 /**

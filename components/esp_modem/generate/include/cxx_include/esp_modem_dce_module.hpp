@@ -130,6 +130,7 @@ public:
 protected:
     std::shared_ptr<DTE> dte;         /*!< Generic device needs the DTE as a channel talk to the module using AT commands */
     std::unique_ptr<PdpContext> pdp;  /*!< It also needs a PDP data, const information used for setting up cellular network */
+    uint32_t registration_timeout_ms; /*!< Max wait for network registration in ms */
 };
 
 // Definitions of other supported modules with some specific commands overwritten
@@ -186,10 +187,10 @@ public:
 
 class SQNGM02S : public GenericModule {
     using GenericModule::GenericModule;
-
 public:
-    command_result connect(PdpContext &pdp);
     bool setup_data_mode() override;
+    command_result read_pin(bool &pin_ok) override;
+    command_result set_pin(const std::string &pin) override;
 };
 
 /**

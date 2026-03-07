@@ -165,6 +165,9 @@ void app_main(void)
 #elif CONFIG_EXAMPLE_MODEM_DEVICE_SIM7600 == 1
     ESP_LOGI(TAG, "Initializing esp_modem for the SIM7600 module...");
     esp_modem_dce_t *dce = esp_modem_new_dev(ESP_MODEM_DCE_SIM7600, &dte_config, &dce_config, esp_netif);
+#elif CONFIG_EXAMPLE_MODEM_DEVICE_SQNGM02S == 1
+    ESP_LOGI(TAG, "Initializing esp_modem for the SQNGM02S module...");
+    esp_modem_dce_t *dce = esp_modem_new_dev(ESP_MODEM_DCE_SQNGM02S, &dte_config, &dce_config, esp_netif);
 #elif CONFIG_EXAMPLE_MODEM_DEVICE_CUSTOM == 1
     ESP_LOGI(TAG, "Initializing esp_modem with custom module...");
     esp_modem_dce_t *dce = esp_modem_new_dev(ESP_MODEM_DCE_CUSTOM, &dte_config, &dce_config, esp_netif);
@@ -173,6 +176,15 @@ void app_main(void)
     esp_modem_dce_t *dce = esp_modem_new(&dte_config, &dce_config, esp_netif);
 #endif
     assert(dce);
+
+    int sync_retries = 0;
+    while (esp_modem_sync(dce) != ESP_OK) {
+        if (sync_retries++ > 5) {
+            ESP_LOGE(TAG, "Failed to sync with the modem");
+            return;
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
     if (dte_config.uart_config.flow_control == ESP_MODEM_FLOW_CONTROL_HW) {
         err = esp_modem_set_flow_control(dce, 2, 2);  //2/2 means HW Flow Control.
         if (err != ESP_OK) {

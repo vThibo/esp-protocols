@@ -54,6 +54,12 @@ menu "Example Configuration"
             help
                 A7670X is Multi-Band LTE-FDD/LTE-TDD/GSM/GPRS/EDGE module.
 
+        config EXAMPLE_MODEM_DEVICE_SQNGM02S
+            depends on EXAMPLE_SERIAL_CONFIG_UART
+            bool "SQNGM02S"
+            help
+                Sequans GM02S/GM02SP is an LTE Cat M1/NB1 module.
+
         config EXAMPLE_MODEM_DEVICE_CUSTOM
             select ESP_MODEM_ADD_CUSTOM_MODULE
             bool "Custom device"
