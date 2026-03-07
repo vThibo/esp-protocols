@@ -150,10 +150,22 @@ command_result power_down_sim8xx(CommandableIf *t)
     return generic_command(t, "AT+CPOWD=1\r", "POWER DOWN", "ERROR", 1000);
 }
 
+command_result power_down_sqngm02s(CommandableIf *t)
+{
+    ESP_LOGV(TAG, "%s", __func__);
+    return generic_command(t, "AT+SQNSSHDN\r", "+SHUTDOWN", "ERROR", 10000);
+}
+
 command_result reset(CommandableIf *t)
 {
     ESP_LOGV(TAG, "%s", __func__);
     return generic_command(t,  "AT+CRESET\r", "PB DONE", "ERROR", 60000);
+}
+
+command_result reset_sqngm02s(CommandableIf *t)
+{
+    ESP_LOGV(TAG, "%s", __func__);
+    return generic_command(t, "AT^RESET\r", "+SYSSTART", "ERROR", 60000);
 }
 
 command_result set_baud(CommandableIf *t, int baud)

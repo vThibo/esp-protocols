@@ -191,6 +191,8 @@ public:
     bool setup_data_mode() override;
     command_result read_pin(bool &pin_ok) override;
     command_result set_pin(const std::string &pin) override;
+    command_result power_down() override;
+    command_result reset() override;
 };
 
 /**

@@ -116,6 +116,14 @@ command_result SQNGM02S::set_pin(const std::string &pin)
     }
     return GenericModule::set_pin(pin);
 }
+command_result SQNGM02S::power_down()
+{
+    return dce_commands::power_down_sqngm02s(dte.get());
+}
+command_result SQNGM02S::reset()
+{
+    return dce_commands::reset_sqngm02s(dte.get());
+}
 bool SQNGM02S::setup_data_mode()
 {
     if (set_echo(false) != command_result::OK) {

@@ -536,4 +536,12 @@ bool SQNGM02S::setup_data_mode()
     }
     return false;
 }
+command_result SQNGM02S::power_down()
+{
+    return esp_modem::dce_commands::power_down_sqngm02s(dte.get());
+}
+command_result SQNGM02S::reset()
+{
+    return esp_modem::dce_commands::reset_sqngm02s(dte.get());
+}
 }
