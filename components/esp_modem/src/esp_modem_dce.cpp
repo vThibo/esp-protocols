@@ -49,7 +49,7 @@ static bool exit_data(DTE &dte, ModuleIf &device, Netif &netif)
     std::array<uint8_t, 3> ppp_escape = {'+', '+', '+'};
     dte.write(ppp_escape.data(), ppp_escape.size());
 #endif
-    if (!signal->wait(1, 2000)) { // wait for any of the disconnection messages
+    if (!signal->wait(1, 3000)) { // wait for any of the disconnection messages
         // if no reply -> set device to command mode
         dte.set_read_cb(nullptr);
         if (!device.set_mode(modem_mode::COMMAND_MODE)) {
