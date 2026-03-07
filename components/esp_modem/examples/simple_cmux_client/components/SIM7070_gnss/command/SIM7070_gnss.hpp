@@ -452,8 +452,8 @@ public:
      * act = 3 - UTRAN (Iu mode)
      * act = 4 - E-UTRAN (WB-S1 mode)
      * act = 5 - E-UTRAN (NB-S1 mode)
-     * @param[in] edrx_value nible string containing encoded eDRX time
-     * @param[in] ptw_value nible string containing encoded Paging Time Window
+     * @param[in] edrx_value nibble string containing encoded eDRX time
+     * @return OK, FAIL or TIMEOUT
      */
     esp_modem::command_result config_edrx(int mode, int access_technology, const std::string &edrx_value)
     {
